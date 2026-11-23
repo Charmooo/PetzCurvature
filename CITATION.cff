@@ -23,7 +23,10 @@ abstract: >-
   certificates for exponential polynomials. Also proved are the strict form for
   states with different spectra, the value (n² − 1)(n² − 4)/8 at the trace state
   and its maximality, and Petz's condition that the scalar curvature of a Gibbs
-  state increases with the temperature.
+  state increases with the temperature. The conjecture was first solved by
+  S. Sra (A Proof of Petz's Conjecture on the Scalar Curvature of the Kubo–Mori
+  Metric, preprint, October 2026), albeit without an accompanying Lean
+  certification; this is a formalization of a slightly different proof.
 keywords:
   - Lean 4
   - Mathlib

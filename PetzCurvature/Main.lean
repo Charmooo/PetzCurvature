@@ -36,8 +36,10 @@ particular, the scalar curvature of a Gibbs state is an increasing function of t
 (Petz 1994, p. 792), his condition (i), which he derives from the conjecture through the
 majorization ordering of Gibbs states (p. 791). Dittmann computed the scalar
 curvature in closed form and reduced the conjecture to the concavity of one function `hs` of three
-variables, which he checked numerically but did not prove. Here the closed form is formalized, and
-the four consequences (62)–(65) of that concavity that the reduction uses are proved.
+variables, which he checked numerically but did not prove. The conjecture was first solved by Sra
+(2026), albeit without an accompanying Lean certification. Here a slightly different proof is
+formalized: Dittmann's closed form, and the four consequences (62)–(65) of his concavity that the
+reduction uses.
 
 The statement uses four definitions:
 * `PetzCurvature.bkmForm` (`KuboMori/Form.lean`): the BKM metric at a positive definite matrix
@@ -81,6 +83,8 @@ certificates.
   information geometry*, J. Math. Phys. 46 (2005), arXiv:math-ph/0407007.
 * [J. Dittmann, *On the curvature of monotone metrics and a conjecture concerning the
   Kubo–Mori metric*][dittmann1999]
+* S. Sra, *A Proof of Petz's Conjecture on the Scalar Curvature of the Kubo–Mori Metric*,
+  preprint v1, 9 October 2026, https://suvrit.github.io/papers/kubo-metric/.
 -/
 
 namespace PetzCurvature

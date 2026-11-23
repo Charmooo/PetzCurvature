@@ -8,6 +8,11 @@ increases under mixing. If the eigenvalues of `ρ` are majorized by those of `ϱ
 mixed), then `S(ϱ) ≤ S(ρ)`. The theorem is in [`PetzCurvature/Main.lean`](PetzCurvature/Main.lean),
 whose docstring lists the definitions the statement depends on.
 
+The conjecture was first solved by Suvrit Sra (*A Proof of Petz's Conjecture on the Scalar
+Curvature of the Kubo–Mori Metric*, preprint, October 2026), albeit without an accompanying Lean
+certification. This library is a Lean formalization of a slightly different proof, along
+Dittmann's route.
+
 ```lean
 theorem PetzCurvature.scalarCurvature_bkmChart_le_of_isMajorizedBy
     {d : Type*} [Fintype d] [DecidableEq d] {ρ ϱ : Matrix d d ℂ}
@@ -118,6 +123,8 @@ parallel (about 5 minutes each, up to about 9 GB of memory each, so about 20 GB 
 * J. Dittmann, *On the curvature of monotone metrics and a conjecture concerning the Kubo–Mori
   metric*, Linear Algebra Appl. 315 (2000) 83–112, arXiv:quant-ph/9906009.
 * H. Shima, *The Geometry of Hessian Structures*, World Scientific, 2007.
+* S. Sra, *A Proof of Petz's Conjecture on the Scalar Curvature of the Kubo–Mori Metric*,
+  preprint v1, 9 October 2026, https://suvrit.github.io/papers/kubo-metric/.
 
 ## Authors
 
