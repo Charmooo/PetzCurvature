@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it as below."
+title: "PetzCurvature: a Lean 4 proof of Petz's conjecture for the Kubo–Mori metric"
+authors:
+  - family-names: Bornemann
+    given-names: Adam
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+  - name: "Claude (Anthropic)"
+license: Apache-2.0
+repository-code: "https://github.com/Charmooo/PetzCurvature"
+type: software
+abstract: >-
+  A formal proof, in Lean 4 with Mathlib, of Petz's conjecture (Conjecture 6.3 of
+  D. Petz, J. Math. Phys. 35 (1994)) that the scalar curvature of the
+  Bogoliubov–Kubo–Mori metric on the faithful density matrices of any size is
+  monotone under mixing: if the eigenvalues of one state are majorized by those of
+  another, its scalar curvature is at least as large. The proof follows Dittmann
+  (Linear Algebra Appl. 315 (2000)): it formalizes his closed form for the scalar
+  curvature as a sum over triples of eigenvalues (Theorem 2) and his reduction of
+  the conjecture to four inequalities (Theorem 3), and proves those inequalities,
+  which Dittmann had checked only numerically, with kernel-checked sign
+  certificates for exponential polynomials. Also proved are the strict form for
+  states with different spectra, the value (n² − 1)(n² − 4)/8 at the trace state
+  and its maximality, and Petz's condition that the scalar curvature of a Gibbs
+  state increases with the temperature.
+keywords:
+  - Lean 4
+  - Mathlib
+  - formal verification
+  - quantum information geometry
+  - monotone metrics
+  - Kubo–Mori metric
+  - Bogoliubov–Kubo–Mori metric
+  - scalar curvature
+  - majorization
+  - Petz conjecture

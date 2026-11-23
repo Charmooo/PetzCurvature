@@ -3,7 +3,9 @@ Copyright (c) 2026 Adam Bornemann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann, Claude (Anthropic)
 -/
+import Mathlib.Analysis.Matrix.HermitianFunctionalCalculus
 import PetzCurvature.Dittmann.Inequalities
+import PetzCurvature.ForMathlib.Gibbs
 import PetzCurvature.KuboMori.Resolvent
 
 /-!
@@ -29,8 +31,10 @@ The Kubo–Mori metric is the monotone metric of the operator monotone function
 entropy. Petz conjectured that its scalar curvature increases under mixing (Petz 1994; Hiai, Petz
 and Tóth 1996), having verified the `2 × 2` case. His reading: through the volume of small
 geodesic balls, the scalar curvature measures the average statistical uncertainty of a state,
-which should grow under coarse graining; equivalently, for thermal states it increases with the
-temperature (as recounted by Andai 2003 and Gibilisco–Isola 2004). Dittmann computed the scalar
+which should grow under coarse graining (as recounted by Andai 2003 and Gibilisco–Isola 2004). In
+particular, the scalar curvature of a Gibbs state is an increasing function of the temperature
+(Petz 1994, p. 792), his condition (i), which he derives from the conjecture through the
+majorization ordering of Gibbs states (p. 791). Dittmann computed the scalar
 curvature in closed form and reduced the conjecture to the concavity of one function `hs` of three
 variables, which he checked numerically but did not prove. Here the closed form is formalized, and
 the four consequences (62)–(65) of that concavity that the reduction uses are proved.
@@ -63,6 +67,8 @@ certificates.
   `(n² − 1)(n² − 4)/8` (Petz's Theorem 6.2, Dittmann's Corollary 3).
 * `PetzCurvature.scalarCurvature_bkmChart_le_traceState`: the trace state has the largest scalar
   curvature among the faithful states.
+* `PetzCurvature.antitoneOn_scalarCurvature_bkmChart_gibbsState`: Petz's condition (i). The scalar
+  curvature of the Gibbs state `e^{-βH} / Tr e^{-βH}` decreases in the inverse temperature `β ≥ 0`.
 
 ## References
 
@@ -180,5 +186,69 @@ theorem scalarCurvature_bkmChart_le_traceState {ρ : Matrix d d ℂ} (hρ : ρ.P
   linarith
 
 end TraceState
+
+/-! ### Gibbs states -/
+
+section Gibbs
+
+open PetzCurvature.Curvature
+
+variable {d : Type*} [Fintype d] [DecidableEq d]
+
+/-- The **Gibbs state** `e^{-βH} / Tr e^{-βH}` of a Hamiltonian `H` at inverse temperature `β`,
+Petz's `R_β(H)` (Petz 1994, (3.1)). The exponential is the continuous functional calculus. -/
+noncomputable def gibbsState (H : Matrix d d ℂ) (β : ℝ) : Matrix d d ℂ :=
+  (cfc (fun x ↦ Real.exp (-(β * x))) H).trace⁻¹ • cfc (fun x ↦ Real.exp (-(β * x))) H
+
+/-- In an eigenbasis of `H`, the Gibbs state is diagonal, carrying the Gibbs distribution of the
+eigenvalues of `H`. -/
+theorem gibbsState_eq {H : Matrix d d ℂ} (hH : H.IsHermitian) (β : ℝ) :
+    gibbsState H β = unitaryConjL hH.eigenvectorUnitary.2
+      (Matrix.diagonal fun i ↦ (gibbsDist hH.eigenvalues β i : ℂ)) := by
+  set U := hH.eigenvectorUnitary
+  have hc := hH.cfc_eq fun x ↦ Real.exp (-(β * x))
+  have htr : (cfc (fun x ↦ Real.exp (-(β * x))) H).trace =
+      ((∑ j, Real.exp (-(β * hH.eigenvalues j)) : ℝ) : ℂ) := by
+    rw [hc, Matrix.IsHermitian.cfc, Unitary.conjStarAlgAut_apply, Matrix.trace_mul_comm,
+      ← Matrix.mul_assoc, Unitary.star_mul_self_of_mem U.2, Matrix.one_mul, Matrix.trace_diagonal]
+    simp
+  rw [gibbsState, htr, hc, Matrix.IsHermitian.cfc, ← map_smul, Unitary.conjStarAlgAut_apply,
+    unitaryConjL_apply, ← Matrix.diagonal_smul]
+  congr 3
+  ext i
+  simp [gibbsDist, div_eq_inv_mul]
+
+open scoped Matrix.Norms.L2Operator ComplexOrder in
+/-- **Petz's condition (i): the scalar curvature of a Gibbs state increases with the
+temperature.** For a Hamiltonian `H`, the scalar curvature of the Kubo–Mori metric at the Gibbs
+state `e^{-βH} / Tr e^{-βH}` decreases in the inverse temperature `β ≥ 0` (Petz 1994, p. 791;
+p. 792 for the reading in terms of temperature). As Petz says, it follows from the conjecture
+because heating mixes: for `0 ≤ β₁ ≤ β₂`, the Gibbs state at `β₁` is more mixed than the one at
+`β₂` (`isMajorizedBy_gibbsDist`). -/
+theorem antitoneOn_scalarCurvature_bkmChart_gibbsState {H : Matrix d d ℂ} (hH : H.IsHermitian) :
+    AntitoneOn (fun β ↦ scalarCurvature (bkmChart (tracelessHermitian d) (gibbsState H β)) 0)
+      (Set.Ici 0) := by
+  intro β₁ h₁ β₂ _ h₁₂
+  rcases isEmpty_or_nonempty d with hd | hd
+  · simp only [Subsingleton.elim (gibbsState H β₂) (gibbsState H β₁), le_refl]
+  set E := hH.eigenvalues
+  have hS : ∀ β, scalarCurvature (bkmChart (tracelessHermitian d) (gibbsState H β)) 0 =
+      curvSum (gibbsDist E β) +
+        ((Fintype.card d : ℝ) ^ 2 - 1) * ((Fintype.card d : ℝ) ^ 2 - 2) / 4 := fun β ↦ by
+    rw [gibbsState_eq hH, scalarCurvature_bkmChart_unitaryConjL _
+      (posDef_diagonal_ofReal (gibbsDist_pos E β)),
+      scalarCurvature_bkmChart_tracelessHermitian_eq_hs (gibbsDist_pos E β) (sum_gibbsDist E β)]
+    rfl
+  have hmix := isMajorizedBy_gibbsDist (E ∘ (Fintype.equivFin d).symm) h₁ h₁₂
+  rw [gibbsDist_comp_equiv, gibbsDist_comp_equiv] at hmix
+  have h : curvSum (gibbsDist E β₂ ∘ (Fintype.equivFin d).symm) ≤
+      curvSum (gibbsDist E β₁ ∘ (Fintype.equivFin d).symm) :=
+    curvSum_le_of_isMajorizedBy dittmannInequalities (fun _ ↦ gibbsDist_pos E β₁ _)
+      (fun _ ↦ gibbsDist_pos E β₂ _) hmix
+  rw [curvSum_comp_equiv, curvSum_comp_equiv] at h
+  simp only [hS]
+  linarith
+
+end Gibbs
 
 end PetzCurvature

@@ -12,6 +12,7 @@ import PetzCurvature.Dittmann.Mixing
 import PetzCurvature.Dittmann.Plane
 import PetzCurvature.Dittmann.Space
 import PetzCurvature.ForMathlib.Basic
+import PetzCurvature.ForMathlib.Gibbs
 import PetzCurvature.ForMathlib.Majorization
 import PetzCurvature.ForMathlib.ParametricIntervalIntegral
 import PetzCurvature.KuboMori.Chart

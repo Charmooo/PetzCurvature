@@ -33,6 +33,11 @@ Also proved in `Main.lean`:
   `S = (n² − 1)(n² − 4)/8` (Petz's Theorem 6.2, Dittmann's Corollary 3).
 * `scalarCurvature_bkmChart_le_traceState`: the trace state has the largest scalar curvature, the
   consequence Petz draws right after the conjecture.
+* `antitoneOn_scalarCurvature_bkmChart_gibbsState`: Petz's condition (i). The scalar curvature
+  of the Gibbs state `e^{-βH} / Tr e^{-βH}` decreases in the inverse temperature `β ≥ 0`, that is,
+  it increases with the temperature (Petz 1994, pp. 791–792). As Petz says, this follows from the
+  conjecture because heating mixes: the Gibbs distributions are ordered by majorization
+  (`isMajorizedBy_gibbsDist`, `ForMathlib/Gibbs.lean`).
 
 **The strict form** needs the proviso that the spectra differ. Petz's equivalent condition (ii)
 and Andai's Conjecture 2.1 are written with `>` but with no such proviso, so as written they fail
@@ -80,12 +85,12 @@ formalizes both theorems and proves all four inequalities.
 
 | Directory | Contents |
 | --- | --- |
-| `ForMathlib/` | General lemmas Mathlib lacks: majorization and Schur–Ostrowski, differentiation under the integral over a compact interval, invertibility of bilinear forms. |
+| `ForMathlib/` | General lemmas Mathlib lacks: majorization and Schur–Ostrowski, the majorization ordering of Gibbs distributions, differentiation under the integral over a compact interval, invertibility of bilinear forms. |
 | `Certificate/` | Reflection for polynomial identities (`ListPoly`) and sign certificates for exponential polynomials (`ExpPolynomial`). |
 | `Curvature/` | Local Riemannian geometry: curvature maps, pullback, Hessian metrics. |
 | `KuboMori/` | The BKM form and kernel, the chart on density matrices, Dittmann's Theorem 2. |
 | `Dittmann/` | Theorem 3 and the inequalities (62)–(65). |
-| `Main.lean` | Petz's conjecture, the trace-state value and maximum. |
+| `Main.lean` | Petz's conjecture, the trace-state value and maximum, Gibbs states. |
 | `scripts/` | `petz1994_table.py`: numerical cross-check against Petz 1994 (needs `mpmath`). |
 
 ## Building
