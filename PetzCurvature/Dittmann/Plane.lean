@@ -40,6 +40,11 @@ segments `(x, x, λ) → (y, y, λ)` and `(x, x, y) → (y, y, x)` of Dittmann's
 along them is needed, not his Assertion that `hs` is concave on all of `ℝ³₊`. With these,
 Dittmann's Theorem 3 needs only (64) and (65).
 
+`-P₆₂(e^A, 1, A)` and its reflection have Taylor coefficients `0` below order `8` and `22400` at
+order `8`, so `P₆₂ < 0` off the diagonal: its exponential polynomial is a nonzero power series
+with nonnegative coefficients. With the strict mean value theorem this makes (62) strict, which
+is all the strict form of Theorem 3 needs (`curvGrad_lt`).
+
 ## Main definitions
 
 * `PetzCurvature.planeHs s w L`: the rational function above.
@@ -66,10 +71,14 @@ Dittmann's Theorem 3 needs only (64) and (65).
   certificates.
 * `PetzCurvature.plane63Num_nonpos`, `PetzCurvature.plane62Num_nonpos`: **the
   numerators behind (63) and (62) are nonpositive**.
+* `PetzCurvature.planeEval_neg`, `PetzCurvature.plane62Num_neg`: strictly negative off the
+  diagonal, from one positive Taylor coefficient on each side.
 * `PetzCurvature.lineDeriv_le`: concavity of `hs(s, s, w)` along a line from the sign of the
   closed-form second derivative.
 * `PetzCurvature.bkmHsDeriv_ineq63`, `PetzCurvature.bkmHsDeriv_ineq62`: **Dittmann's
   inequalities (63) and (62)**.
+* `PetzCurvature.lineDeriv_lt`, `PetzCurvature.bkmHsDeriv_ineq62_pos`: strict concavity along a
+  line, and **(62) strict**, which is what the strict form of Petz's conjecture needs.
 
 ## References
 
@@ -508,6 +517,53 @@ theorem plane62Num_nonpos {s w : ℝ} (hs : 0 < s) (hw : 0 < w) :
   planeEval_nonpos_of_coefOk (d := 7) (M := 45) (by decide +kernel) (by decide +kernel)
     (by decide +kernel) hs hw
 
+/-- **Strict sign of a plane numerator from two Taylor certificates**: if moreover a Taylor
+coefficient of `-P(e^A, 1, A)` and one of its reflection are positive, then
+`P(s, w, log s - log w) < 0` off the diagonal `s = w`. -/
+theorem planeEval_neg {p : List (ℤ × ℕ × ℕ × ℕ)} {d K N₁ N₂ : ℕ}
+    (hd : ∀ m ∈ p, m.2.1 + m.2.2.1 = d) (hK : ∀ m ∈ planeExp p, m.2.1 ≤ K)
+    (hpos : ∀ n, 0 ≤ ExpPolynomial.coef (planeExp p) n)
+    (hneg : ∀ n, 0 ≤ ExpPolynomial.coef (ExpPolynomial.reflect K (planeExp p)) n)
+    (hN₁ : 0 < ExpPolynomial.coef (planeExp p) N₁)
+    (hN₂ : 0 < ExpPolynomial.coef (ExpPolynomial.reflect K (planeExp p)) N₂)
+    {s w : ℝ} (hs : 0 < s) (hw : 0 < w) (hsw : s ≠ w) :
+    planeEval p s w (Real.log s - Real.log w) < 0 := by
+  have hL : Real.log s - Real.log w ≠ 0 := sub_ne_zero.mpr (Real.log_injOn_pos.ne hs hw hsw)
+  have e : s = w * Real.exp (Real.log s - Real.log w) := by
+    rw [Real.exp_sub, Real.exp_log hs, Real.exp_log hw]; field_simp
+  generalize Real.log s - Real.log w = L at e hL ⊢
+  subst e
+  rw [planeEval_mul_exp hd]
+  have hG : 0 < ExpPolynomial.eval (planeExp p) L := by
+    rcases hL.lt_or_gt with h | h
+    · rw [ExpPolynomial.eval_reflect hK]
+      exact mul_pos (Real.exp_pos _) (ExpPolynomial.eval_pos hneg hN₂ (by linarith))
+    · exact ExpPolynomial.eval_pos hpos hN₁ h
+  have := pow_pos hw d
+  nlinarith
+
+/-- **Strict sign of a plane numerator from kernel checks**: `coefOk` for `-P(e^A, 1, A)` and for
+its reflection, and one positive coefficient of each. -/
+theorem planeEval_neg_of_coefOk {p : List (ℤ × ℕ × ℕ × ℕ)} {d M N₁ N₂ : ℕ}
+    (hd : ∀ m ∈ p, m.2.1 + m.2.2.1 = d) (h₁ : ExpPolynomial.coefOk (planeExp p) M = true)
+    (h₂ : ExpPolynomial.coefOk
+      (ExpPolynomial.reflect (ExpPolynomial.maxE (planeExp p)) (planeExp p)) M = true)
+    (hN₁ : 0 < ExpPolynomial.coef (planeExp p) N₁)
+    (hN₂ : 0 < ExpPolynomial.coef
+      (ExpPolynomial.reflect (ExpPolynomial.maxE (planeExp p)) (planeExp p)) N₂)
+    {s w : ℝ} (hs : 0 < s) (hw : 0 < w) (hsw : s ≠ w) :
+    planeEval p s w (Real.log s - Real.log w) < 0 :=
+  planeEval_neg hd ExpPolynomial.le_maxE (ExpPolynomial.coefOk_spec h₁)
+    (ExpPolynomial.coefOk_spec h₂) hN₁ hN₂ hs hw hsw
+
+/-- **The numerator behind (62) is negative off the diagonal**: `P₆₂(s, w, log s - log w) < 0`
+for positive `s ≠ w`. The Taylor coefficients of order `8` of `-P₆₂(e^A, 1, A)` and of its
+reflection are positive (`22400`); those below `8` vanish. -/
+theorem plane62Num_neg {s w : ℝ} (hs : 0 < s) (hw : 0 < w) (hsw : s ≠ w) :
+    planeEval plane62Num s w (Real.log s - Real.log w) < 0 :=
+  planeEval_neg_of_coefOk (d := 7) (M := 45) (N₁ := 8) (N₂ := 8) (by decide +kernel)
+    (by decide +kernel) (by decide +kernel) (by decide +kernel) (by decide +kernel) hs hw hsw
+
 /-! ### Concavity along lines: Dittmann's (62) and (63) -/
 
 section Line
@@ -537,6 +593,31 @@ theorem le_of_hasDerivAt_nonpos_off {f f' : ℝ → ℝ} {a c p : ℝ} (hac : a 
   · exact (key p c hp.1.le hp.2.le le_rfl fun h ↦ lt_irrefl _ h.1).trans
       (key a p le_rfl hp.1.le hp.2.le fun h ↦ lt_irrefl _ h.2)
   · exact key a c le_rfl hac le_rfl hp
+
+/-- A function continuous on `[a, c]` whose derivative is `< 0` on `(a, c)` except at one point
+`p` decreases strictly from `a` to `c`. -/
+theorem lt_of_hasDerivAt_neg_off {f f' : ℝ → ℝ} {a c p : ℝ} (hac : a < c)
+    (hf : ContinuousOn f (Icc a c))
+    (hd : ∀ τ ∈ Ioo a c, τ ≠ p → HasDerivAt f (f' τ) τ ∧ f' τ < 0) : f c < f a := by
+  have hle : ∀ a' c', a ≤ a' → a' ≤ c' → c' ≤ c → f c' ≤ f a' := fun a' c' h1 h2 h3 ↦
+    le_of_hasDerivAt_nonpos_off h2 (hf.mono (Icc_subset_Icc h1 h3)) fun τ hτ hp ↦
+      have h := hd τ ⟨h1.trans_lt hτ.1, hτ.2.trans_le h3⟩ hp
+      ⟨h.1, h.2.le⟩
+  have hlt : ∀ a' c', a ≤ a' → a' < c' → c' ≤ c → p ∉ Ioo a' c' → f c' < f a' := by
+    intro a' c' h1 h2 h3 hp
+    have hsub : ∀ x ∈ Ioo a' c', x ∈ Ioo a c ∧ x ≠ p := fun x hx ↦
+      ⟨⟨h1.trans_lt hx.1, hx.2.trans_le h3⟩, fun h ↦ hp (h ▸ hx)⟩
+    refine strictAntiOn_of_deriv_neg (convex_Icc a' c') (hf.mono (Icc_subset_Icc h1 h3)) ?_
+      (left_mem_Icc.2 h2.le) (right_mem_Icc.2 h2.le) h2
+    rw [interior_Icc]
+    intro x hx
+    rw [(hd x (hsub x hx).1 (hsub x hx).2).1.deriv]
+    exact (hd x (hsub x hx).1 (hsub x hx).2).2
+  rcases le_or_gt p ((a + c) / 2) with hp | hp
+  · exact (hlt ((a + c) / 2) c (by linarith) (by linarith) le_rfl fun h ↦ by
+      linarith [h.1]).trans_le (hle a ((a + c) / 2) le_rfl (by linarith) (by linarith))
+  · exact (hle ((a + c) / 2) c (by linarith) (by linarith) le_rfl).trans_lt
+      (hlt a ((a + c) / 2) le_rfl (by linarith) (by linarith) fun h ↦ by linarith [h.2])
 
 variable {s₀ w₀ b : ℝ}
 
@@ -614,6 +695,29 @@ theorem lineDeriv_le {D₁ D₂ : ℝ → ℝ} (hb : b ≠ 1) {a c : ℝ} (hac :
   have h := hD₂ τ hτ'.1 hτ'.2 hne
   exact ⟨hasDerivAt_lineDeriv_of_ne hτ'.1 hτ'.2 hne hD₁ h.1, h.2⟩
 
+/-- **Strict concavity along a line**: if the closed form has a second derivative `< 0` off the
+diagonal, then `lineDeriv` decreases strictly on an interval of the positive region. -/
+theorem lineDeriv_lt {D₁ D₂ : ℝ → ℝ} (hb : b ≠ 1) {a c : ℝ} (hac : a < c)
+    (hpos : ∀ τ ∈ Icc a c, 0 < s₀ + τ ∧ 0 < w₀ + b * τ)
+    (hD₁ : ∀ τ', 0 < s₀ + τ' → 0 < w₀ + b * τ' → s₀ + τ' ≠ w₀ + b * τ' →
+      HasDerivAt (fun τ ↦ planeHs (s₀ + τ) (w₀ + b * τ)
+        (Real.log (s₀ + τ) - Real.log (w₀ + b * τ))) (D₁ τ') τ')
+    (hD₂ : ∀ τ, 0 < s₀ + τ → 0 < w₀ + b * τ → s₀ + τ ≠ w₀ + b * τ →
+      HasDerivAt D₁ (D₂ τ) τ ∧ D₂ τ < 0) :
+    lineDeriv s₀ w₀ b c < lineDeriv s₀ w₀ b a := by
+  refine lt_of_hasDerivAt_neg_off (f' := D₂) (p := (w₀ - s₀) / (1 - b)) hac
+    (fun τ hτ ↦ (continuousAt_lineDeriv (hpos τ hτ).1 (hpos τ hτ).2).continuousWithinAt)
+    fun τ hτ hp ↦ ?_
+  have hτ' := hpos τ (Ioo_subset_Icc_self hτ)
+  have hne : s₀ + τ ≠ w₀ + b * τ := by
+    intro h
+    apply hp
+    have : (1 - b) ≠ 0 := sub_ne_zero.mpr hb.symm
+    field_simp
+    linarith
+  have h := hD₂ τ hτ'.1 hτ'.2 hne
+  exact ⟨hasDerivAt_lineDeriv_of_ne hτ'.1 hτ'.2 hne hD₁ h.1, h.2⟩
+
 end Line
 
 /-- **Dittmann's inequality (63)**: `hs′(x, x, λ) ≥ hs′(y, y, λ)` for positive `x < y` and `λ`. -/
@@ -649,6 +753,31 @@ theorem bkmHsDeriv_ineq62 {x y : ℝ} (hx : 0 < x) (hxy : x < y) :
     (fun τ hS hW' hne ↦ hasDerivAt_planeHs_anti ((hasDerivAt_id τ).const_add x) (hW τ) hS hW' hne)
     fun τ hS hW' hne ↦ ⟨hasDerivAt_plane62Deriv ((hasDerivAt_id τ).const_add x) (hW τ) hS hW' hne,
       div_nonpos_of_nonpos_of_nonneg (plane62Num_nonpos hS hW') (by positivity)⟩
+  have e1 : x + (y - x) = y := by ring
+  have e2 : y + -1 * (y - x) = x := by ring
+  simp only [lineDeriv, add_zero, mul_zero, e1, e2] at h
+  rw [bkmHsDeriv_comm₂₃ y x y]
+  linarith
+
+/-- **Dittmann's inequality (62), strict**: `2 hs′(x, x, y) - hs′(y, x, x) - 2 hs′(y, x, y) +
+hs′(x, y, y) > 0` for positive `x < y`. -/
+theorem bkmHsDeriv_ineq62_pos {x y : ℝ} (hx : 0 < x) (hxy : x < y) :
+    0 < 2 * bkmHsDeriv x x y - bkmHsDeriv y x x - 2 * bkmHsDeriv y x y + bkmHsDeriv x y y := by
+  have hW : ∀ τ, HasDerivAt (fun τ ↦ y + -1 * τ) (-1) τ := fun τ ↦ by
+    simpa using ((hasDerivAt_id τ).const_mul (-1 : ℝ)).const_add y
+  have h := lineDeriv_lt (s₀ := x) (w₀ := y) (b := -1) (D₁ := fun τ ↦
+      plane62Deriv (x + τ) (y + -1 * τ) (Real.log (x + τ) - Real.log (y + -1 * τ)))
+    (D₂ := fun τ ↦ planeEval plane62Num (x + τ) (y + -1 * τ)
+      (Real.log (x + τ) - Real.log (y + -1 * τ)) / (3 * (Real.log (x + τ) -
+        Real.log (y + -1 * τ)) ^ 4 * (x + τ) ^ 3 * (y + -1 * τ) ^ 3 * (x + τ - (y + -1 * τ)) ^ 4))
+    (by norm_num) (sub_pos.mpr hxy)
+    (fun τ hτ ↦ ⟨by linarith [hτ.1], by linarith [hτ.2]⟩)
+    (fun τ hS hW' hne ↦ hasDerivAt_planeHs_anti ((hasDerivAt_id τ).const_add x) (hW τ) hS hW' hne)
+    fun τ hS hW' hne ↦ ⟨hasDerivAt_plane62Deriv ((hasDerivAt_id τ).const_add x) (hW τ) hS hW' hne,
+      div_neg_of_neg_of_pos (plane62Num_neg hS hW' hne) (by
+        have := sub_ne_zero.mpr hne
+        have := sub_ne_zero.mpr (Real.log_injOn_pos.ne hS hW' hne)
+        positivity)⟩
   have e1 : x + (y - x) = y := by ring
   have e2 : y + -1 * (y - x) = x := by ring
   simp only [lineDeriv, add_zero, mul_zero, e1, e2] at h

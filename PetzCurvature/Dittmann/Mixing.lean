@@ -30,6 +30,11 @@ increases under mixing. The route differs from Dittmann's (a chain of T-transfor
 two eigenvalues, and the derivative at `t = 0`): the gradient is controlled at every point of the
 segment between the sorted eigenvalue vectors.
 
+The strict form follows the same way. The term of (62) in Dittmann's identity is present for every
+pair `a, b`, so if (62) is strict, `lₐ < l_b` implies `∂_b curvSum < ∂ₐ curvSum`, and the strict
+Schur–Ostrowski criterion gives `S(ϱ) < S(ρ)` when the spectra differ. Strict (62) is proved in
+`Dittmann/Plane.lean`.
+
 Mixing is majorization: `ρ` is more mixed than `ϱ` (Dittmann's `ρ ≻ ϱ`, his (60)) when the
 eigenvalues of `ρ` are majorized by those of `ϱ`.
 
@@ -50,12 +55,18 @@ eigenvalues of `ρ` are majorized by those of `ϱ`.
 * `PetzCurvature.hasDerivAt_bkmHs_comp`: `d/dt hs(u, v, w) = hs′(u, v, w) u′ +
   hs′(v, u, w) v′ + hs′(w, u, v) w′`.
 * `PetzCurvature.hasDerivAt_curvSum`: the derivative of `curvSum` along a curve.
+* `PetzCurvature.curvGrad_sub_curvGrad`: **Dittmann's identity**, the expansion of
+  `∂ₐ curvSum - ∂_b curvSum`.
 * `PetzCurvature.curvGrad_le`: **Dittmann's identity as a sign**, from (62)–(65).
+* `PetzCurvature.curvGrad_lt`: the strict sign, from (62)–(65) with (62) strict.
 * `PetzCurvature.curvSum_comp_equiv`: `curvSum` is invariant under relabeling.
 * `PetzCurvature.curvSum_le_of_isMajorizedBy`: under (62)–(65), `curvSum` increases under
   majorization.
 * `PetzCurvature.scalarCurvature_bkmChart_le_of_isMajorizedBy_of_dittmann`: **Dittmann's
   Theorem 3**, Petz's conjecture conditional on (62)–(65).
+* `PetzCurvature.curvSum_lt_of_isMajorizedBy`,
+  `PetzCurvature.scalarCurvature_bkmChart_lt_of_isMajorizedBy_of_dittmann`: the strict forms,
+  for spectra that differ, conditional on (62)–(65) with (62) strict.
 
 ## References
 
@@ -307,19 +318,11 @@ theorem sum_sum_split_two [Fintype ι] (hab : a ≠ b) (f : ι → ι → ℝ) :
 
 end Split
 
-/-- **Dittmann's identity, as a sign**: under (62)–(65), if `lₐ < l_b` then
-`∂_b curvSum ≤ ∂ₐ curvSum`, i.e. moving weight from `l_b` to `lₐ` (mixing) does not decrease
-the curvature. The identity is the expansion of `⅓ (∂ₐ - ∂_b) curvSum` in Dittmann's proof of
-Theorem 3. Its four groups of terms (the pair `a, b` alone, one other index, two other indices)
-are signed by (62), by (63) and (64), and by (65). -/
-theorem curvGrad_le (H : DittmannInequalities) {l : ι → ℝ}
-    (hl : ∀ i, 0 < l i) {a b : ι} (hab : l a < l b) : curvGrad l b ≤ curvGrad l a := by
-  classical
-  have hne : a ≠ b := fun h ↦ hab.ne (congrArg l h)
-  have s₁ : ∀ u v, ∑ r ∈ (univ.erase a).erase b, bkmHsDeriv (l u) (l r) (l v) =
-      ∑ r ∈ (univ.erase a).erase b, bkmHsDeriv (l u) (l v) (l r) :=
-    fun _ _ ↦ Finset.sum_congr rfl fun _ _ ↦ bkmHsDeriv_comm₂₃ _ _ _
-  have key : curvGrad l a - curvGrad l b = 3 *
+/-- **Dittmann's identity**: the expansion of `⅓ (∂ₐ - ∂_b) curvSum` in Dittmann's proof of
+Theorem 3, in four groups of terms: the pair `a, b` alone (the expression of (62)), one other
+index (those of (63) and (64)), and two other indices (that of (65)). -/
+theorem curvGrad_sub_curvGrad [DecidableEq ι] (l : ι → ℝ) {a b : ι} (hne : a ≠ b) :
+    curvGrad l a - curvGrad l b = 3 *
       ((2 * bkmHsDeriv (l a) (l a) (l b) - bkmHsDeriv (l b) (l a) (l a) -
         2 * bkmHsDeriv (l b) (l a) (l b) + bkmHsDeriv (l a) (l b) (l b)) +
       2 * ∑ r ∈ (univ.erase a).erase b,
@@ -327,13 +330,26 @@ theorem curvGrad_le (H : DittmannInequalities) {l : ι → ℝ}
           (bkmHsDeriv (l a) (l b) (l r) - bkmHsDeriv (l b) (l a) (l r))) +
       ∑ j ∈ (univ.erase a).erase b, ∑ k ∈ (univ.erase a).erase b,
         (bkmHsDeriv (l a) (l j) (l k) - bkmHsDeriv (l b) (l j) (l k))) := by
-    simp only [curvGrad]
-    rw [sum_sum_split_two hne (fun j k ↦ bkmHsDeriv (l a) (l j) (l k)),
-      sum_sum_split_two hne (fun j k ↦ bkmHsDeriv (l b) (l j) (l k))]
-    simp only [Finset.sum_add_distrib, Finset.sum_sub_distrib]
-    rw [s₁ a a, s₁ a b, s₁ b a, s₁ b b, bkmHsDeriv_comm₂₃ (l a) (l b) (l a),
-      bkmHsDeriv_comm₂₃ (l b) (l b) (l a)]
-    ring
+  have s₁ : ∀ u v, ∑ r ∈ (univ.erase a).erase b, bkmHsDeriv (l u) (l r) (l v) =
+      ∑ r ∈ (univ.erase a).erase b, bkmHsDeriv (l u) (l v) (l r) :=
+    fun _ _ ↦ Finset.sum_congr rfl fun _ _ ↦ bkmHsDeriv_comm₂₃ _ _ _
+  simp only [curvGrad]
+  rw [sum_sum_split_two hne (fun j k ↦ bkmHsDeriv (l a) (l j) (l k)),
+    sum_sum_split_two hne (fun j k ↦ bkmHsDeriv (l b) (l j) (l k))]
+  simp only [Finset.sum_add_distrib, Finset.sum_sub_distrib]
+  rw [s₁ a a, s₁ a b, s₁ b a, s₁ b b, bkmHsDeriv_comm₂₃ (l a) (l b) (l a),
+    bkmHsDeriv_comm₂₃ (l b) (l b) (l a)]
+  ring
+
+/-- Under (63)–(65), the terms of Dittmann's identity other than that of (62) are nonnegative:
+`3 E₆₂ ≤ ∂ₐ curvSum - ∂_b curvSum` for `lₐ < l_b`, with `E₆₂` the expression of (62). -/
+theorem le_curvGrad_sub_curvGrad (H : DittmannInequalities) {l : ι → ℝ} (hl : ∀ i, 0 < l i)
+    {a b : ι} (hab : l a < l b) :
+    3 * (2 * bkmHsDeriv (l a) (l a) (l b) - bkmHsDeriv (l b) (l a) (l a) -
+      2 * bkmHsDeriv (l b) (l a) (l b) + bkmHsDeriv (l a) (l b) (l b)) ≤
+        curvGrad l a - curvGrad l b := by
+  classical
+  rw [curvGrad_sub_curvGrad l fun h ↦ hab.ne (congrArg l h)]
   have hR : 0 ≤ ∑ r ∈ (univ.erase a).erase b,
       ((bkmHsDeriv (l a) (l a) (l r) - bkmHsDeriv (l b) (l b) (l r)) +
         (bkmHsDeriv (l a) (l b) (l r) - bkmHsDeriv (l b) (l a) (l r))) :=
@@ -343,7 +359,29 @@ theorem curvGrad_le (H : DittmannInequalities) {l : ι → ℝ}
       (bkmHsDeriv (l a) (l j) (l k) - bkmHsDeriv (l b) (l j) (l k)) :=
     Finset.sum_nonneg fun j _ ↦ Finset.sum_nonneg fun k _ ↦
       H.ineq65 _ _ _ _ (hl a) hab (hl j) (hl k)
+  linarith
+
+/-- **Dittmann's identity, as a sign**: under (62)–(65), if `lₐ < l_b` then
+`∂_b curvSum ≤ ∂ₐ curvSum`, i.e. moving weight from `l_b` to `lₐ` (mixing) does not decrease
+the curvature. The identity is the expansion of `⅓ (∂ₐ - ∂_b) curvSum` in Dittmann's proof of
+Theorem 3 (`curvGrad_sub_curvGrad`). Its four groups of terms (the pair `a, b` alone, one other
+index, two other indices) are signed by (62), by (63) and (64), and by (65). -/
+theorem curvGrad_le (H : DittmannInequalities) {l : ι → ℝ}
+    (hl : ∀ i, 0 < l i) {a b : ι} (hab : l a < l b) : curvGrad l b ≤ curvGrad l a := by
+  have h := le_curvGrad_sub_curvGrad H hl hab
   have e62 := H.ineq62 _ _ (hl a) hab
+  linarith
+
+/-- **Dittmann's identity, as a strict sign**: under (62)–(65), with (62) strict, if `lₐ < l_b`
+then `∂_b curvSum < ∂ₐ curvSum`. Only (62) needs to be strict: its term is present for every pair
+`a, b`, while the others need further indices. -/
+theorem curvGrad_lt (H : DittmannInequalities)
+    (H62 : ∀ x y : ℝ, 0 < x → x < y → 0 < 2 * bkmHsDeriv x x y - bkmHsDeriv y x x -
+      2 * bkmHsDeriv y x y + bkmHsDeriv x y y)
+    {l : ι → ℝ} (hl : ∀ i, 0 < l i) {a b : ι} (hab : l a < l b) :
+    curvGrad l b < curvGrad l a := by
+  have h := le_curvGrad_sub_curvGrad H hl hab
+  have e62 := H62 _ _ (hl a) hab
   linarith
 
 /-- `∂ₐ curvSum` depends on `a` only through `lₐ`. -/
@@ -410,6 +448,68 @@ theorem scalarCurvature_bkmChart_le_of_isMajorizedBy_of_dittmann (H : DittmannIn
       curvSum (hρ.1.eigenvalues ∘ (Fintype.equivFin d).symm) :=
     curvSum_le_of_isMajorizedBy H (fun _ ↦ hρ.eigenvalues_pos _)
       (fun _ ↦ hϱ.eigenvalues_pos _) hmix
+  rw [curvSum_comp_equiv, curvSum_comp_equiv] at h
+  simp only [curvSum] at h
+  linarith
+
+/-- **Under (62)–(65), with (62) strict, `curvSum` increases strictly under mixing**: if `x` is
+majorized by `y` (both positive) and their increasing rearrangements differ, then
+`curvSum y < curvSum x`. -/
+theorem curvSum_lt_of_isMajorizedBy (H : DittmannInequalities)
+    (H62 : ∀ x y : ℝ, 0 < x → x < y → 0 < 2 * bkmHsDeriv x x y - bkmHsDeriv y x x -
+      2 * bkmHsDeriv y x y + bkmHsDeriv x y y)
+    {n : ℕ} {x y : Fin n → ℝ} (hx : ∀ i, 0 < x i) (hy : ∀ i, 0 < y i) (hxy : IsMajorizedBy x y)
+    (hne : Majorization.sortInc x ≠ Majorization.sortInc y) : curvSum y < curvSum x := by
+  refine lt_of_isMajorizedBy (U := {z | ∀ i, 0 < z i}) (grad := curvGrad) ?_ ?_ ?_ ?_
+    (fun z hz _ a b hab ↦ curvGrad_lt H H62 hz hab) hx hy hxy hne
+  · intro z hz w hw a b ha hb hab i
+    have := hz i
+    have := hw i
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+    rcases ha.lt_or_eq with ha' | rfl
+    · positivity
+    · simp only [zero_mul, zero_add] at hab ⊢
+      rw [hab, one_mul]
+      exact hw i
+  · intro z hz σ
+    exact ⟨fun i ↦ hz (σ i), curvSum_comp_equiv σ z⟩
+  · intro z hz v
+    have h := hasDerivAt_curvSum (L := fun s ↦ z + s • v) (L' := v) (t := 0)
+      (fun i ↦ by
+        simpa using ((hasDerivAt_id (0 : ℝ)).mul_const (v i)).const_add (z i))
+      (fun i ↦ by simpa using hz i)
+    simpa using h
+  · intro z hz hmono a b hab
+    rcases (hmono hab).lt_or_eq with h | h
+    · exact curvGrad_le H hz h
+    · exact (curvGrad_congr h).ge
+
+open PetzCurvature.Curvature in
+open scoped Matrix.Norms.L2Operator ComplexOrder in
+/-- **Dittmann's Theorem 3, strict**: if `hs` satisfies (62)–(65), with (62) strict, then for
+faithful density matrices `ρ`, `ϱ` of the same size with the eigenvalues of `ρ` majorized by those
+of `ϱ`, and spectra that differ (no relabeling of the eigenvalues of `ρ` gives those of `ϱ`),
+`S(ϱ) < S(ρ)`. -/
+theorem scalarCurvature_bkmChart_lt_of_isMajorizedBy_of_dittmann (H : DittmannInequalities)
+    (H62 : ∀ x y : ℝ, 0 < x → x < y → 0 < 2 * bkmHsDeriv x x y - bkmHsDeriv y x x -
+      2 * bkmHsDeriv y x y + bkmHsDeriv x y y)
+    {d : Type*} [Fintype d] [DecidableEq d] {ρ ϱ : Matrix d d ℂ} (hρ : ρ.PosDef)
+    (hϱ : ϱ.PosDef) (hρtr : ρ.trace = 1) (hϱtr : ϱ.trace = 1)
+    (hmix : IsMajorizedBy (hρ.1.eigenvalues ∘ (Fintype.equivFin d).symm)
+      (hϱ.1.eigenvalues ∘ (Fintype.equivFin d).symm))
+    (hne : ∀ σ : Equiv.Perm d, hρ.1.eigenvalues ∘ σ ≠ hϱ.1.eigenvalues) :
+    scalarCurvature (bkmChart (tracelessHermitian d) ϱ) 0 <
+      scalarCurvature (bkmChart (tracelessHermitian d) ρ) 0 := by
+  rw [scalarCurvature_bkmChart_eq_hs hρ hρtr, scalarCurvature_bkmChart_eq_hs hϱ hϱtr]
+  set e := Fintype.equivFin d
+  have hne' : Majorization.sortInc (hρ.1.eigenvalues ∘ e.symm) ≠
+      Majorization.sortInc (hϱ.1.eigenvalues ∘ e.symm) := fun h ↦ by
+    obtain ⟨σ, hσ⟩ := Majorization.exists_comp_eq_of_sortInc_eq h
+    refine hne ((e.trans σ).trans e.symm) (funext fun i ↦ ?_)
+    simpa using congrFun hσ (e i)
+  have h : curvSum (hϱ.1.eigenvalues ∘ e.symm) < curvSum (hρ.1.eigenvalues ∘ e.symm) :=
+    curvSum_lt_of_isMajorizedBy H H62 (fun _ ↦ hρ.eigenvalues_pos _)
+      (fun _ ↦ hϱ.eigenvalues_pos _) hmix hne'
   rw [curvSum_comp_equiv, curvSum_comp_equiv] at h
   simp only [curvSum] at h
   linarith

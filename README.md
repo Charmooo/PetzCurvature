@@ -24,16 +24,20 @@ curvature is monotone with respect to the 'more mixed' partial ordering of densi
 is also Dittmann's (60), `ρ ≻ ϱ ⟹ S_ρ ≥ S_ϱ`, and Gibilisco–Isola's Conjecture 8.2 (the BKM
 scalar curvature is Schur-increasing).
 
-Two consequences are proved in `Main.lean`:
+Also proved in `Main.lean`:
 
+* `scalarCurvature_bkmChart_lt_of_isMajorizedBy`: the strict form. If moreover the spectra of `ρ`
+  and `ϱ` differ (`hne : ∀ σ : Equiv.Perm d, hρ.1.eigenvalues ∘ σ ≠ hϱ.1.eigenvalues`), then
+  `S(ϱ) < S(ρ)`.
 * `scalarCurvature_bkmChart_traceState`: at the trace state `1/n`,
   `S = (n² − 1)(n² − 4)/8` (Petz's Theorem 6.2, Dittmann's Corollary 3).
 * `scalarCurvature_bkmChart_le_traceState`: the trace state has the largest scalar curvature, the
   consequence Petz draws right after the conjecture.
 
-**Not proved: the strict form.** That form says `S(ϱ) < S(ρ)` whenever `ρ` is more mixed than
-`ϱ` and their spectra differ. Petz's equivalent condition (ii) and Andai's Conjecture 2.1 are
-written with `>` but with no such proviso, so as written they fail at `ρ = ϱ`.
+**The strict form** needs the proviso that the spectra differ. Petz's equivalent condition (ii)
+and Andai's Conjecture 2.1 are written with `>` but with no such proviso, so as written they fail
+at `ρ = ϱ`. Of Dittmann's four inequalities only (62) has to be strict for the strict form, and its
+certificate gives that directly (its Taylor coefficients are not all zero).
 
 **Cross-check against Petz's numbers.** [`scripts/petz1994_table.py`](scripts/petz1994_table.py)
 evaluates the closed form that Lean proves equal to the scalar curvature

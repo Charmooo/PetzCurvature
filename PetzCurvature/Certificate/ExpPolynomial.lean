@@ -51,6 +51,7 @@ too coarse otherwise.
 
 * `ExpPolynomial.hasSum_eval`: the Taylor series of `eval r` at `0`.
 * `ExpPolynomial.eval_nonneg`: nonnegative `coef` give `eval r A ≥ 0` for `A ≥ 0`.
+* `ExpPolynomial.eval_pos`: if moreover one `coef` is positive, `eval r A > 0` for `A > 0`.
 * `ExpPolynomial.eval_reflect`: `eval r A = e^{K A} eval (reflect K r) (-A)`.
 * `ExpPolynomial.hasSum_eval₂`, `ExpPolynomial.eval₂_nonneg`: nonnegative coefficients give
   `eval₂ r p q ≥ 0` on the quadrant.
@@ -118,6 +119,17 @@ theorem eval_nonneg {r : List (ℤ × ℕ × ℕ)} (h : ∀ n, 0 ≤ coef r n) {
   (hasSum_eval r A).nonneg fun n ↦ by
     have := h n
     have : (0 : ℝ) ≤ coef r n := by exact_mod_cast this
+    positivity
+
+/-- **Nonnegative Taylor coefficients, one positive**: if every `coef r n ≥ 0` and some
+`coef r N > 0`, then `eval r A > 0` for `A > 0`. -/
+theorem eval_pos {r : List (ℤ × ℕ × ℕ)} (h : ∀ n, 0 ≤ coef r n) {N : ℕ} (hN : 0 < coef r N)
+    {A : ℝ} (hA : 0 < A) : 0 < eval r A := by
+  refine hasSum_lt (f := fun _ ↦ (0 : ℝ)) (i := N) (fun n ↦ ?_) ?_ hasSum_zero (hasSum_eval r A)
+  · have := h n
+    have : (0 : ℝ) ≤ coef r n := by exact_mod_cast this
+    positivity
+  · have : (0 : ℝ) < coef r N := by exact_mod_cast hN
     positivity
 
 /-- The reflected exponential polynomial: `(c, E, k) ↦ (c (-1)ᵏ, K - E, k)`. -/

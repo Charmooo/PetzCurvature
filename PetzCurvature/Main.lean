@@ -18,9 +18,11 @@ Conjecture 8.2 ("the scalar curvature of BKM metric is a Schur-increasing functi
 consequence the scalar curvature is largest at the trace state `1/n`, where Petz computed it
 (his Theorem 6.2): `S(1/n) = (n² − 1)(n² − 4)/8`.
 
-The strict form, `S(ϱ) < S(ρ)` unless the spectra of `ρ` and `ϱ` agree, is not proved here.
-Petz's condition (ii) (p. 791) and Andai's Conjecture 2.1 are written with a strict inequality
-but no such proviso; taken literally they fail at `ρ = ϱ`, since "more mixed" is reflexive.
+The strict form is proved too: `S(ϱ) < S(ρ)` whenever, in addition, the spectra of `ρ` and `ϱ`
+differ. Petz's condition (ii) (p. 791) and Andai's Conjecture 2.1 are written with a strict
+inequality but no such proviso; taken literally they fail at `ρ = ϱ`, since "more mixed" is
+reflexive. With the proviso they hold. Of Dittmann's four inequalities only (62) needs to be
+strict for this, and it is (`bkmHsDeriv_ineq62_pos`).
 
 The Kubo–Mori metric is the monotone metric of the operator monotone function
 `f(t) = (t − 1)/log t`, and the Hessian of `ρ ↦ Tr ρ log ρ`, the negative of the von Neumann
@@ -55,6 +57,8 @@ certificates.
 ## Main statements
 
 * `PetzCurvature.scalarCurvature_bkmChart_le_of_isMajorizedBy`: **Petz's conjecture**.
+* `PetzCurvature.scalarCurvature_bkmChart_lt_of_isMajorizedBy`: its strict form, for spectra
+  that differ.
 * `PetzCurvature.scalarCurvature_bkmChart_traceState`: the scalar curvature at the trace state,
   `(n² − 1)(n² − 4)/8` (Petz's Theorem 6.2, Dittmann's Corollary 3).
 * `PetzCurvature.scalarCurvature_bkmChart_le_traceState`: the trace state has the largest scalar
@@ -90,6 +94,24 @@ theorem scalarCurvature_bkmChart_le_of_isMajorizedBy {d : Type*} [Fintype d] [De
       scalarCurvature (bkmChart (tracelessHermitian d) ρ) 0 :=
   scalarCurvature_bkmChart_le_of_isMajorizedBy_of_dittmann dittmannInequalities hρ hϱ hρtr hϱtr
     hmix
+
+open PetzCurvature.Curvature in
+open scoped Matrix.Norms.L2Operator ComplexOrder in
+/-- **Petz's conjecture, strict form**: the scalar curvature of the Kubo–Mori metric increases
+strictly under proper mixing. For faithful density matrices `ρ`, `ϱ` of the same size with the
+eigenvalues of `ρ` majorized by those of `ϱ`, and spectra that differ (no relabeling of the
+eigenvalues of `ρ` gives those of `ϱ`), `S(ϱ) < S(ρ)`: Dittmann's Theorem 3 with (62)–(65) proved
+and (62) strict. -/
+theorem scalarCurvature_bkmChart_lt_of_isMajorizedBy {d : Type*} [Fintype d] [DecidableEq d]
+    {ρ ϱ : Matrix d d ℂ} (hρ : ρ.PosDef) (hϱ : ϱ.PosDef) (hρtr : ρ.trace = 1)
+    (hϱtr : ϱ.trace = 1)
+    (hmix : IsMajorizedBy (hρ.1.eigenvalues ∘ (Fintype.equivFin d).symm)
+      (hϱ.1.eigenvalues ∘ (Fintype.equivFin d).symm))
+    (hne : ∀ σ : Equiv.Perm d, hρ.1.eigenvalues ∘ σ ≠ hϱ.1.eigenvalues) :
+    scalarCurvature (bkmChart (tracelessHermitian d) ϱ) 0 <
+      scalarCurvature (bkmChart (tracelessHermitian d) ρ) 0 :=
+  scalarCurvature_bkmChart_lt_of_isMajorizedBy_of_dittmann dittmannInequalities
+    (fun _ _ hx hxy ↦ bkmHsDeriv_ineq62_pos hx hxy) hρ hϱ hρtr hϱtr hmix hne
 
 /-! ### The trace state -/
 
