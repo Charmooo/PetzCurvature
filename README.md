@@ -1,5 +1,7 @@
 # PetzCurvature
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24460110.svg)](https://doi.org/10.5281/zenodo.24460110)
+
 A Lean 4 + Mathlib proof of **Petz's conjecture** for the Kubo–Mori metric: on the faithful
 density matrices of any size, the scalar curvature of the Bogoliubov–Kubo–Mori (BKM) metric
 increases under mixing. If the eigenvalues of `ρ` are majorized by those of `ϱ` (`ρ` is more

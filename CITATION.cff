@@ -7,6 +7,7 @@ authors:
     # orcid: "https://orcid.org/0000-0000-0000-0000"
   - name: "Claude (Anthropic)"
 license: Apache-2.0
+doi: 10.5281/zenodo.24460110
 repository-code: "https://github.com/Charmooo/PetzCurvature"
 type: software
 abstract: >-
