@@ -775,9 +775,12 @@ theorem bkmHsDeriv_ineq62_pos {x y : ℝ} (hx : 0 < x) (hxy : x < y) :
     (fun τ hS hW' hne ↦ hasDerivAt_planeHs_anti ((hasDerivAt_id τ).const_add x) (hW τ) hS hW' hne)
     fun τ hS hW' hne ↦ ⟨hasDerivAt_plane62Deriv ((hasDerivAt_id τ).const_add x) (hW τ) hS hW' hne,
       div_neg_of_neg_of_pos (plane62Num_neg hS hW' hne) (by
-        have := sub_ne_zero.mpr hne
-        have := sub_ne_zero.mpr (Real.log_injOn_pos.ne hS hW' hne)
-        positivity)⟩
+        have h₁ := sub_ne_zero.mpr hne
+        have h₂ := sub_ne_zero.mpr (Real.log_injOn_pos.ne hS hW' hne)
+        have h₃ : 0 < x + τ := hS
+        have h₄ : 0 < y + -1 * τ := hW'
+        exact mul_pos (mul_pos (mul_pos (mul_pos three_pos (Even.pow_pos (by decide) h₂))
+          (pow_pos h₃ 3)) (pow_pos h₄ 3)) (Even.pow_pos (by decide) h₁))⟩
   have e1 : x + (y - x) = y := by ring
   have e2 : y + -1 * (y - x) = x := by ring
   simp only [lineDeriv, add_zero, mul_zero, e1, e2] at h

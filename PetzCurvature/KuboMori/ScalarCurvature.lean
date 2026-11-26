@@ -232,7 +232,7 @@ theorem bkmContrT_diagonal (hl : ∀ i, 0 < l i) {ι : Type*} [Fintype ι] [Deci
   have h : ∀ X Y : ℂ, (-(X + Y)) ^ 2 = X ^ 2 + Y ^ 2 + 2 * (X * Y) := fun _ _ ↦ by ring
   simp only [h, Finset.sum_add_distrib, ← Finset.mul_sum]
   rw [sum_triSum_sq hK, sum_triSum_sq' hK, sum_triSum_mul_triSum hK, ← two_mul]
-  congr 2
+  refine congrArg₂ (· + ·) (congrArg (2 * ·) ?_) (congrArg (2 * ·) ?_)
   · refine Finset.sum_congr rfl fun i _ ↦ ?_
     simp only [bkmCoeff, Complex.ofReal_inv]
     ring

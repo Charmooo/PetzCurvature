@@ -102,7 +102,7 @@ formalizes both theorems and proves all four inequalities.
 
 ## Building
 
-Lean `v4.34.1`, Mathlib `v4.34.1`.
+Lean `v4.36.0`, Mathlib `v4.36.0`.
 
 ```bash
 lake exe cache get
